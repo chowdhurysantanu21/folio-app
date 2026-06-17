@@ -11,8 +11,8 @@ const getPrice = async (req, res) => {
             data: {
                 symbol: symbol.toUpperCase(),
                 ltp: result.regularMarketPrice,
-                change: result.regularMarketChange,
-                changePercent: result.regularMarketChangePercent,
+                dayChange: result.regularMarketChange,
+                dayChangePercent: result.regularMarketChangePercent,
                 high52Week: result.fiftyTwoWeekHigh,
                 low52Week: result.fiftyTwoWeekLow,
                 pe: result.trailingPE,
@@ -36,8 +36,8 @@ const getPrices = async (req, res) => {
                 return {
                     symbol: symbol.toUpperCase(),
                     ltp: result.regularMarketPrice,
-                    change: result.regularMarketChange,
-                    changePercent: result.regularMarketChangePercent
+                    dayChange: result.regularMarketChange,
+                    dayChangePercent: result.regularMarketChangePercent
                 }
             })
         )
