@@ -36,9 +36,7 @@ const getHoldingById = async (req, res) => {
   try {
     const holding = await Holding.findById(req.params.id)
     if (!holding) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Holding not found" })
+      return res.status(404).json({ success: false, message: "Holding not found" })
     }
     res.json({ success: true, data: holding })
   } catch (error) {
@@ -54,9 +52,7 @@ const updateHolding = async (req, res) => {
       runValidators: true,
     })
     if (!holding) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Holding not found" })
+      return res.status(404).json({ success: false, message: "Holding not found" })
     }
     res.json({ success: true, data: holding })
   } catch (error) {
@@ -69,9 +65,7 @@ const deleteHolding = async (req, res) => {
   try {
     const holding = await Holding.findByIdAndDelete(req.params.id)
     if (!holding) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Holding not found" })
+      return res.status(404).json({ success: false, message: "Holding not found" })
     }
     res.json({ success: true, message: "Holding removed" })
   } catch (error) {
@@ -107,6 +101,7 @@ const getPortfolio = async (req, res) => {
       const ltp = priceData ? priceData.ltp : holding.avgPrice
       const totalInvested = holding.avgPrice * holding.qty
       const currentValue = ltp * holding.qty
+      const dayGain = priceData ? (priceData.dayChange * holding.qty) : 0
       const gain = currentValue - totalInvested
       const gainPercent = (gain / totalInvested) * 100
 
@@ -119,6 +114,7 @@ const getPortfolio = async (req, res) => {
         ltp: ltp,
         dayChange: priceData ? priceData.dayChange : 0,
         dayChangePercent: priceData ? priceData.dayChangePercent : 0,
+        dayGain: +dayGain.toFixed(2),
         totalInvested: +totalInvested.toFixed(2),
         currentValue: +currentValue.toFixed(2),
         gain: +gain.toFixed(2),
@@ -128,20 +124,16 @@ const getPortfolio = async (req, res) => {
 
     // Step 4 - calculate overall portfolio summary
     const summary = {
-      totalInvested: +portfolioData
-        .reduce((sum, h) => sum + h.totalInvested, 0)
-        .toFixed(2),
-      currentValue: +portfolioData
-        .reduce((sum, h) => sum + h.currentValue, 0)
-        .toFixed(2),
+      totalInvested: +portfolioData.reduce((sum, h) => sum + h.totalInvested, 0).toFixed(2),
+      currentValue: +portfolioData.reduce((sum, h) => sum + h.currentValue, 0).toFixed(2),
       totalGain: +portfolioData.reduce((sum, h) => sum + h.gain, 0).toFixed(2),
+      dayGain: +portfolioData.reduce((sum, h) => sum + h.dayGain, 0).toFixed(2),
       totalGainPercent: 0,
     }
 
-    summary.totalGainPercent = +(
-      (summary.totalGain / summary.totalInvested) *
-      100
-    ).toFixed(2)
+    summary.totalGainPercent = +((summary.totalGain / summary.totalInvested) * 100).toFixed(2)
+
+    summary.dayGainPercent = +((summary.dayGain / summary.currentValue) * 100).toFixed(2)
 
     res.json({ success: true, summary, data: portfolioData })
   } catch (error) {
