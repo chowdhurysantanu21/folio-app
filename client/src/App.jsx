@@ -6,7 +6,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchPortfolio = () => {
     fetch("http://localhost:8000/api/holdings/portfolio")
       .then((response) => response.json())
       .then((result) => {
@@ -19,6 +19,23 @@ function App() {
         setError(err.message)
         setLoading(false)
       })
+  }
+
+  const handleDelete = (id) => {
+    fetch(`http://localhost:8000/api/holdings/${id}`, {
+      method: "DELETE",
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success) {
+          fetchPortfolio()
+        }
+      })
+      .catch((err) => console.error("Delete failed: ", err))
+  }
+
+  useEffect(() => {
+    fetchPortfolio()
   }, [])
 
   // formatting helpers
@@ -79,6 +96,7 @@ function App() {
             <th className="py-2 px-3">P&amp;L %</th>
             <th className="py-2 px-3">Day Change</th>
             <th className="py-2 px-3">Day Chg %</th>
+            <th className="py-2 px-3"></th>
           </tr>
         </thead>
         <tbody>
@@ -108,6 +126,11 @@ function App() {
                 className={`py-2 px-3 ${holding.dayChangePercent >= 0 ? "text-green-500" : "text-red-500"}`}
               >
                 {formatPercent(holding.dayChangePercent)}
+              </td>
+              <td className="py-2 px-3">
+                <button onClick={() => handleDelete(holding._id)} className="text-red-400 hover:text-red-600">
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
