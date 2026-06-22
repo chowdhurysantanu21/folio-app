@@ -24,7 +24,18 @@ const addHolding = async (req, res) => {
         message: `${symbol.toUpperCase()} already exists in your portfolio`,
       })
     }
-    const holding = await Holding.create({ symbol, name, qty, avgPrice })
+    // If no name provided, fetch it from Yahoo Finance
+    let stockName = name
+    if (!stockName) {
+      const result = await yahooFinance.quote(`${symbol.toUpperCase()}.NS`)
+      stockName = result.longName || result.shortName || symbol.toUpperCase()
+    }
+    const holding = await Holding.create({
+      symbol: symbol.toUpperCase(),
+      name: stockName,
+      qty,
+      avgPrice,
+    })
     res.status(201).json({ success: true, data: holding })
   } catch (error) {
     res.status(500).json({ status: false, message: error.message })
@@ -101,7 +112,7 @@ const getPortfolio = async (req, res) => {
       const ltp = priceData ? priceData.ltp : holding.avgPrice
       const totalInvested = holding.avgPrice * holding.qty
       const currentValue = ltp * holding.qty
-      const dayGain = priceData ? (priceData.dayChange * holding.qty) : 0
+      const dayGain = priceData ? priceData.dayChange * holding.qty : 0
       const gain = currentValue - totalInvested
       const gainPercent = (gain / totalInvested) * 100
 

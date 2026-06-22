@@ -5,6 +5,9 @@ function App() {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [symbol, setSymbol] = useState("")
+  const [qty, setQty] = useState("")
+  const [avgPrice, setAvgPrice] = useState("")
 
   const fetchPortfolio = () => {
     fetch("http://localhost:8000/api/holdings/portfolio")
@@ -32,6 +35,30 @@ function App() {
         }
       })
       .catch((err) => console.error("Delete failed: ", err))
+  }
+
+  const handleAdd = () => {
+    fetch("http://localhost:8000/api/holdings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        symbol: symbol.toUpperCase(),
+        qty: Number(qty),
+        avgPrice: Number(avgPrice),
+      }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success) {
+          setSymbol("")
+          setQty("")
+          setAvgPrice("")
+          fetchPortfolio()
+        } else {
+          alert(result.message)
+        }
+      })
+      .catch((err) => console.error("Add failed: ", err))
   }
 
   useEffect(() => {
@@ -82,6 +109,39 @@ function App() {
           </div>
         </div>
       )}
+
+      <div className="flex gap-3 mb-6 items-end">
+        <div>
+          <label className="block text-gray-400 text-sm mb-1">Symbol</label>
+          <input 
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className="bg-gray-800 rounded px-3 py-2 text-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-400 text-sm mb-1">Qty</label>
+          <input
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            className="bg-gray-800 rounded px-3 py-2 text-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-400 text-sm mb-1">Avg Price</label>
+          <input
+            value={avgPrice}
+            onChange={(e) => setAvgPrice(e.target.value)}
+            className="bg-gray-800 rounded px-3 py-2 text-gray-100"
+          />
+        </div>
+        <div>
+          <button onClick={handleAdd} className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-white">
+            Add Stock
+          </button>
+        </div>
+      </div>
+      
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-gray-700 text-left text-gray-400">
@@ -128,7 +188,10 @@ function App() {
                 {formatPercent(holding.dayChangePercent)}
               </td>
               <td className="py-2 px-3">
-                <button onClick={() => handleDelete(holding._id)} className="text-red-400 hover:text-red-600">
+                <button
+                  onClick={() => handleDelete(holding._id)}
+                  className="text-red-400 hover:text-red-600"
+                >
                   Delete
                 </button>
               </td>
@@ -141,3 +204,38 @@ function App() {
 }
 
 export default App
+
+
+// the form, placed before the <table>:
+{/* <div className="flex gap-3 mb-6 items-end">
+  <div>
+    <label className="block text-gray-400 text-sm mb-1">Symbol</label>
+    <input
+      value={symbol}
+      onChange={(e) => setSymbol(e.target.value)}
+      className="bg-gray-800 rounded px-3 py-2 text-gray-100"
+    />
+  </div>
+  <div>
+    <label className="block text-gray-400 text-sm mb-1">Qty</label>
+    <input
+      value={qty}
+      onChange={(e) => setQty(e.target.value)}
+      className="bg-gray-800 rounded px-3 py-2 text-gray-100 w-24"
+    />
+  </div>
+  <div>
+    <label className="block text-gray-400 text-sm mb-1">Avg Price</label>
+    <input
+      value={avgPrice}
+      onChange={(e) => setAvgPrice(e.target.value)}
+      className="bg-gray-800 rounded px-3 py-2 text-gray-100 w-28"
+    />
+  </div>
+  <button
+    onClick={handleAdd}
+    className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-white"
+  >
+    Add Stock
+  </button>
+</div> */}
